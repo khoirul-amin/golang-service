@@ -5,6 +5,7 @@ type Users struct {
 	FirstName string `form:"firstname" json:"firstname"`
 	LastName  string `form:"lastname" json:"lastname"`
 	Username  string `form:"username" json:"username"`
+	Token     string `form:"token" json:"token"`
 }
 
 type Response struct {
@@ -14,8 +15,6 @@ type Response struct {
 	Data      []Users
 }
 
-// type ResponseError struct {
-// 	Status  int    `json:"status"`
-// 	Message string `json:"message"`
-// 	Data    string `json:"data"`
-// }
+type CekLogin struct {
+	Id string `form:"id" json:"id"`
+}

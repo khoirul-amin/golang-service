@@ -11,3 +11,10 @@ func Hash(data string) string {
 	return hex.EncodeToString(hash[:])
 
 }
+
+func HashToken(data string) string {
+	token := data + TimeStamp()
+	hash := Hash(token)
+
+	return hash
+}

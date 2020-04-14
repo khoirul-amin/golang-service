@@ -1,4 +1,4 @@
-package user
+package controller
 
 import (
 	"encoding/json"
@@ -71,17 +71,19 @@ func InsertUsersMultipart(w http.ResponseWriter, r *http.Request) {
 		last_name := r.FormValue("last_name")
 		username := r.FormValue("username")
 		updated_at := ""
+		token := ""
 		created_at := Library.TimeStamp()
 
 		if first_name != "" && last_name != "" && username != "" && r.FormValue("password") != "" {
 
 			password := Library.Hash(r.FormValue("password"))
 
-			_, err = db.Exec("INSERT INTO users (first_name, last_name, username, password, created_at, updated_at) values (?,?,?,?,?,?)",
+			_, err = db.Exec("INSERT INTO users (first_name, last_name, username, password, token, created_at, updated_at) values (?,?,?,?,?,?,?)",
 				first_name,
 				last_name,
 				username,
 				password,
+				token,
 				created_at,
 				updated_at,
 			)
