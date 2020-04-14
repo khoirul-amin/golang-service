@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"restapi/Library"
 	"restapi/config"
 	"restapi/structs"
 
@@ -21,7 +22,7 @@ func ReturnAllUsers(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	if ua == "123" {
-		rows, err := db.Query("Select * from person")
+		rows, err := db.Query("Select id,first_name,last_name,username from users")
 		if err != nil {
 			log.Print(err)
 		}
@@ -69,12 +70,20 @@ func InsertUsersMultipart(w http.ResponseWriter, r *http.Request) {
 		first_name := r.FormValue("first_name")
 		last_name := r.FormValue("last_name")
 		username := r.FormValue("username")
+		updated_at := ""
+		created_at := Library.TimeStamp()
 
-		if first_name != "" && last_name != "" && username != "" {
-			_, err = db.Exec("INSERT INTO person (first_name, last_name, username) values (?,?,?)",
+		if first_name != "" && last_name != "" && username != "" && r.FormValue("password") != "" {
+
+			password := Library.Hash(r.FormValue("password"))
+
+			_, err = db.Exec("INSERT INTO users (first_name, last_name, username, password, created_at, updated_at) values (?,?,?,?,?,?)",
 				first_name,
 				last_name,
 				username,
+				password,
+				created_at,
+				updated_at,
 			)
 
 			if err != nil {
@@ -119,12 +128,14 @@ func UpdateUsersMultipart(w http.ResponseWriter, r *http.Request) {
 		last_name := r.FormValue("last_name")
 		username := r.FormValue("username")
 		id := r.FormValue("user_id")
+		updated_at := Library.TimeStamp()
 
 		if first_name != "" && last_name != "" && username != "" && id != "" {
-			_, err = db.Exec("UPDATE person set first_name = ?, last_name = ?, username = ? where id = ?",
+			_, err = db.Exec("UPDATE users set first_name = ?, last_name = ?, username = ?, updated_at = ? where id = ?",
 				first_name,
 				last_name,
 				username,
+				updated_at,
 				id,
 			)
 
@@ -168,7 +179,7 @@ func DeleteUsersMultipart(w http.ResponseWriter, r *http.Request) {
 
 		id := r.FormValue("user_id")
 		if id != "" {
-			_, err = db.Exec("DELETE from person where id = ?",
+			_, err = db.Exec("DELETE from users where id = ?",
 				id,
 			)
 
