@@ -66,27 +66,32 @@ func GetLogin(w http.ResponseWriter, r *http.Request) {
 				session := sessions.Start(w, r)
 
 				session.Set("isLogin", "Login")
+				session.Set("userId", &cekloginRes.Id)
 				session.Set("userName", username)
 				session.Set("userToken", token)
 				response.ErrNumber = 0
 				response.Status = "SUCCESS"
 				response.Message = "Success Login"
 				response.Data = arr_user
+				response.RespTime = Library.TimeStamp()
 			} else {
 				response.ErrNumber = 3
 				response.Status = "ERROR"
 				response.Message = "Username Atau Password Salah"
+				response.RespTime = Library.TimeStamp()
 			}
 		} else {
 			response.ErrNumber = 2
 			response.Status = "ERROR"
 			response.Message = "Lengkapi Data Terlebih Dahulu"
+			response.RespTime = Library.TimeStamp()
 			// response.Data = arr_user
 		}
 	} else {
 		response.ErrNumber = 1
 		response.Status = "ERROR"
 		response.Message = "Header Salah"
+		response.RespTime = Library.TimeStamp()
 		// response.Data = arr_user
 	}
 
@@ -105,11 +110,13 @@ func GoLogout(w http.ResponseWriter, r *http.Request) {
 		response.ErrNumber = 0
 		response.Status = "SUCCESS"
 		response.Message = "Logout Success"
+		response.RespTime = Library.TimeStamp()
 		// log.Print("Delete data to database")
 	} else {
 		response.ErrNumber = 1
 		response.Status = "ERROR"
 		response.Message = "Header Salah"
+		response.RespTime = Library.TimeStamp()
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -118,6 +125,8 @@ func GoLogout(w http.ResponseWriter, r *http.Request) {
 
 func CekUserSession(w http.ResponseWriter, r *http.Request) {
 	session := Library.CekSession(w, r)
+	ipAddr := Library.GetIP(r)
 
+	log.Print(ipAddr)
 	log.Print(session)
 }

@@ -40,11 +40,13 @@ func ReturnAllUsers(w http.ResponseWriter, r *http.Request) {
 		response.Status = "SUCCESS"
 		response.Message = "Daftar User"
 		response.Data = arr_user
+		response.RespTime = Library.TimeStamp()
 	} else {
 		response.ErrNumber = 1
 		response.Status = "ERROR"
 		response.Message = "Header Salah"
 		// response.Data = arr_user
+		response.RespTime = Library.TimeStamp()
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -70,15 +72,15 @@ func InsertUsersMultipart(w http.ResponseWriter, r *http.Request) {
 		first_name := r.FormValue("first_name")
 		last_name := r.FormValue("last_name")
 		username := r.FormValue("username")
-		updated_at := ""
-		token := ""
 		created_at := Library.TimeStamp()
+		token := ""
+		updated_at := ""
 
 		if first_name != "" && last_name != "" && username != "" && r.FormValue("password") != "" {
 
 			password := Library.Hash(r.FormValue("password"))
 
-			_, err = db.Exec("INSERT INTO users (first_name, last_name, username, password, token, created_at, updated_at) values (?,?,?,?,?,?,?)",
+			_, err = db.Exec("INSERT INTO users (first_name, last_name, username, password, token, created_at, updated_at) VALUES (?,?,?,?,?,?,?)",
 				first_name,
 				last_name,
 				username,
@@ -95,17 +97,20 @@ func InsertUsersMultipart(w http.ResponseWriter, r *http.Request) {
 			response.ErrNumber = 0
 			response.Status = "SUCCESS"
 			response.Message = "Success Add"
+			response.RespTime = Library.TimeStamp()
 			// log.Print("Insert data to database")
 		} else {
 			response.ErrNumber = 2
 			response.Status = "ERROR"
 			response.Message = "Lengkapi Data Terlebih Dahulu"
+			response.RespTime = Library.TimeStamp()
 			// response.Data = arr_user
 		}
 	} else {
 		response.ErrNumber = 1
 		response.Status = "ERROR"
 		response.Message = "Header Salah"
+		response.RespTime = Library.TimeStamp()
 		// response.Data = arr_user
 	}
 
@@ -147,17 +152,20 @@ func UpdateUsersMultipart(w http.ResponseWriter, r *http.Request) {
 			response.ErrNumber = 0
 			response.Status = "SUCCESS"
 			response.Message = "Success Update Data"
+			response.RespTime = Library.TimeStamp()
 			// log.Print("Update data to database")
 		} else {
 			response.ErrNumber = 2
 			response.Status = "ERROR"
 			response.Message = "Lengkapi Data Terlebih Dahulu"
+			response.RespTime = Library.TimeStamp()
 			// response.Data = arr_user
 		}
 	} else {
 		response.ErrNumber = 1
 		response.Status = "ERROR"
 		response.Message = "Header Salah"
+		response.RespTime = Library.TimeStamp()
 		// response.Data = arr_user
 	}
 
@@ -192,18 +200,21 @@ func DeleteUsersMultipart(w http.ResponseWriter, r *http.Request) {
 			response.ErrNumber = 0
 			response.Status = "SUCCESS"
 			response.Message = "Success Delete Data"
+			response.RespTime = Library.TimeStamp()
 			// log.Print("Delete data to database")
 
 		} else {
 			response.ErrNumber = 2
 			response.Status = "ERROR"
 			response.Message = "Lengkapi Data Terlebih Dahulu"
+			response.RespTime = Library.TimeStamp()
 			// response.Data = arr_user
 		}
 	} else {
 		response.ErrNumber = 1
 		response.Status = "ERROR"
 		response.Message = "Header Salah"
+		response.RespTime = Library.TimeStamp()
 		// response.Data = arr_user
 	}
 

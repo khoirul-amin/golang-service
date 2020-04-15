@@ -1,6 +1,9 @@
 package Library
 
 import (
+	"crypto/md5"
+	"encoding/hex"
+	"net/http"
 	"strconv"
 	"time"
 )
@@ -19,4 +22,26 @@ func TimeStamp() string {
 
 	return timeNow
 
+}
+
+func Hash(data string) string {
+	hash := md5.Sum([]byte(data))
+
+	return hex.EncodeToString(hash[:])
+
+}
+
+func HashToken(data string) string {
+	token := data + TimeStamp()
+	hash := Hash(token)
+
+	return hash
+}
+
+func GetIP(r *http.Request) string {
+	forwarded := r.Header.Get("X-FORWARDED-FOR")
+	if forwarded != "" {
+		return forwarded
+	}
+	return r.RemoteAddr
 }

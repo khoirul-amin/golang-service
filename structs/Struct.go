@@ -11,8 +11,9 @@ type Users struct {
 type Response struct {
 	ErrNumber int    `json:"errnumber"`
 	Status    string `json:"status"`
-	Message   string `json:"message"`
 	Data      []Users
+	Message   string `json:"message"`
+	RespTime  string `json:"respTime"`
 }
 
 type CekLogin struct {
