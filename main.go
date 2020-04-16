@@ -25,6 +25,9 @@ func main() {
 	router.HandleFunc("/users/cek-session", controller.CekUserSession).Methods("GET")
 	router.HandleFunc("/users/logout", controller.GoLogout).Methods("GET")
 
+	//Get Produk
+	router.HandleFunc("/cekproduk", controller.GetProduk).Methods("POST")
+
 	http.Handle("/", router)
 	fmt.Println("Connected to port 1234")
 	log.Fatal(http.ListenAndServe(":1234", router))

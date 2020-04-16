@@ -63,6 +63,7 @@ func GetLogin(w http.ResponseWriter, r *http.Request) {
 					arr_user = append(arr_user, users)
 				}
 
+				tokenLogin := Library.JwtAuthUser(w, r, username, token)
 				session := sessions.Start(w, r)
 
 				session.Set("isLogin", "Login")
@@ -71,7 +72,7 @@ func GetLogin(w http.ResponseWriter, r *http.Request) {
 				session.Set("userToken", token)
 				response.ErrNumber = 0
 				response.Status = "SUCCESS"
-				response.Message = "Success Login"
+				response.Message = string([]byte(tokenLogin))
 				response.Data = arr_user
 				response.RespTime = Library.TimeStamp()
 			} else {
@@ -124,9 +125,13 @@ func GoLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 func CekUserSession(w http.ResponseWriter, r *http.Request) {
-	session := Library.CekSession(w, r)
-	ipAddr := Library.GetIP(r)
+	authorizationHeader := r.Header.Get("Authorization")
 
-	log.Print(ipAddr)
-	log.Print(session)
+	Library.MiddlewareJWTAuthorization(w, r, authorizationHeader)
+	// userInfo := r.Context().Value("userInfo").(jwt.MapClaims)
+	// session := Library.CekSession(w, r)
+	// ipAddr := Library.GetIP(r)
+
+	// log.Print(ipAddr)
+	// log.Print(session)
 }
