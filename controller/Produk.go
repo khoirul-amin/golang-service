@@ -11,44 +11,86 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-
-func GetProduk(w http.ResponseWriter, r *http.Request){
+func GetProduk(w http.ResponseWriter, r *http.Request) {
 	var produk structs.Produk
 	var arr_produk []structs.Produk
 	var response structs.ResponseProduk
-
-	ua := r.Header.Get("User-Agent")
 	db := config.Connect()
 	defer db.Close()
 
-
-	if ua == "123" {
-		rows, err := db.Query("SELECT id,nama_produk,status FROM produk WHERE status = 'Active'")
-		if err != nil {
-			log.Print(err)
-		}
-		for rows.Next() {
-			if err := rows.Scan(&produk.Id, &produk.Nama, &produk.Status); err != nil {
-				log.Fatal(err.Error())
-
-			} else {
-				arr_produk = append(arr_produk, produk)
-			}
-		}
-
-		response.ErrNumber = 0
-		response.Status = "SUCCESS"
-		response.Message = "Daftar User"
-		response.Data = arr_produk
-		response.RespTime = Library.TimeStamp()
+	authorizationHeader := r.Header.Get("Authorization")
+	if authorizationHeader == "" {
+		Library.ErrorResponse(w, "Invalid Token", "Lengkapi data terlebih dahulu", 2)
 	} else {
-		response.ErrNumber = 1
-		response.Status = "ERROR"
-		response.Message = "Header Salah"
-		// response.Data = arr_user
-		response.RespTime = Library.TimeStamp()
-	}
+		result := Library.CekAuth(w, r, authorizationHeader)
+		if result {
+			rows, err := db.Query("SELECT id,nama_produk,status FROM produk WHERE status = 'Active'")
+			if err != nil {
+				log.Print(err)
+			}
+			for rows.Next() {
+				if err := rows.Scan(&produk.Id, &produk.Nama, &produk.Status); err != nil {
+					log.Fatal(err.Error())
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+				} else {
+					arr_produk = append(arr_produk, produk)
+				}
+			}
+
+			response.ErrNumber = 0
+			response.Status = "SUCCESS"
+			response.Message = "Daftar Produk"
+			response.Data = arr_produk
+			response.RespTime = Library.TimeStamp()
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(response)
+		} else {
+			Library.ErrorResponse(w, "Invalid Token", "Token anda sudah tidak bisa digunakan, silahkan login kembali", 4)
+		}
+	}
+}
+
+func GetBarangByProduk(w http.ResponseWriter, r *http.Request) {
+	var barang structs.Barang
+	var arr_barang []structs.Barang
+	var response structs.ResponseBarang
+	db := config.Connect()
+	defer db.Close()
+
+	idProduk := r.FormValue("id_produk")
+	authorizationHeader := r.Header.Get("Authorization")
+	if authorizationHeader == "" {
+		Library.ErrorResponse(w, "Invalid Token", "Lengkapi data terlebih dahulu", 2)
+	} else {
+		result := Library.CekAuth(w, r, authorizationHeader)
+		if result {
+			if idProduk == "" {
+				Library.ErrorResponse(w, "Incompleted Parameter", "Lengkapi data terlebih dahulu", 2)
+			} else {
+				rows, err := db.Query("SELECT id,nama_produk,nama_barang,harga_jual,satuan,stock FROM `v_barang` WHERE jenis_barang = ?",
+					idProduk,
+				)
+				if err != nil {
+					log.Print(err)
+				}
+
+				for rows.Next() {
+					if err := rows.Scan(&barang.Id, &barang.NamaProduk, &barang.NamaBarang, &barang.HargaJual, &barang.Satuan, &barang.Stok); err != nil {
+						log.Fatal(err.Error())
+					} else {
+						arr_barang = append(arr_barang, barang)
+					}
+				}
+				response.ErrNumber = 0
+				response.Status = "SUCCESS"
+				response.Message = "Daftar Barang"
+				response.Data = arr_barang
+				response.RespTime = Library.TimeStamp()
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(response)
+			}
+		} else {
+			Library.ErrorResponse(w, "Invalid Token", "Token anda sudah tidak bisa digunakan, silahkan login kembali", 4)
+		}
+	}
 }

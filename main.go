@@ -27,6 +27,7 @@ func main() {
 
 	//Get Produk
 	router.HandleFunc("/cekproduk", controller.GetProduk).Methods("POST")
+	router.HandleFunc("/getbarang", controller.GetBarangByProduk).Methods("POST")
 
 	http.Handle("/", router)
 	fmt.Println("Connected to port 1234")
