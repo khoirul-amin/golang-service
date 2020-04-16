@@ -26,11 +26,6 @@ func CekSession(w http.ResponseWriter, r *http.Request, tokenJwt string) bool {
 	} else {
 		return false
 	}
-	// if sessionLogin == tokenJwt {
-	// 	return true
-	// } else {
-	// 	return false
-	// }
 }
 
 func CekAuth(w http.ResponseWriter, r *http.Request, authorizationHeader string) bool {
