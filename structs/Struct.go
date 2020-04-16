@@ -33,3 +33,19 @@ type Response struct {
 type CekLogin struct {
 	Id string `form:"id" json:"id"`
 }
+
+type Login struct {
+	Id        string `form:"id" json:"id"`
+	FirstName string `form:"firstname" json:"firstname"`
+	LastName  string `form:"lastname" json:"lastname"`
+	Username  string `form:"username" json:"username"`
+	Token     []byte `form:"token" json:"token"`
+}
+
+type ResponseLogin struct {
+	ErrNumber int    `json:"errnumber"`
+	Status    string `json:"status"`
+	Data      []Login
+	Message   string `json:"message"`
+	RespTime  string `json:"respTime"`
+}

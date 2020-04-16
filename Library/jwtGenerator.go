@@ -12,7 +12,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
-type M map[string]interface{}
+// type M map[string]interface{}
 
 type MyClaims struct {
 	jwt.StandardClaims
@@ -26,7 +26,7 @@ var LOGIN_EXPIRATION_DURATION = time.Duration(1) * time.Hour
 var JWT_SIGNING_METHOD = jwt.SigningMethodHS256
 var JWT_SIGNATURE_KEY = []byte("the secret of kalimdor")
 
-func JwtAuthUser(w http.ResponseWriter, r *http.Request, username string, token string) []byte {
+func JwtAuthUser(w http.ResponseWriter, r *http.Request, username string, token string) string {
 	claims := MyClaims{
 		StandardClaims: jwt.StandardClaims{
 			Issuer:    APPLICATION_NAME,
@@ -48,12 +48,10 @@ func JwtAuthUser(w http.ResponseWriter, r *http.Request, username string, token 
 		log.Print(w, err.Error(), http.StatusBadRequest)
 	}
 
-	tokenString, _ := json.Marshal(M{"token": signedToken})
-	return tokenString
+	return signedToken
 }
 
-func MiddlewareJWTAuthorization(w http.ResponseWriter, r *http.Request, authorizationHeader string) {
-	w.Header().Set("Content-Type", "application/json")
+func MiddlewareJWTAuthorization(w http.ResponseWriter, r *http.Request, authorizationHeader string) string {
 	tokenString := strings.Replace(authorizationHeader, "Bearer ", "", -1)
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -77,6 +75,7 @@ func MiddlewareJWTAuthorization(w http.ResponseWriter, r *http.Request, authoriz
 	ctx := context.WithValue(context.Background(), "userInfo", claims)
 	r = r.WithContext(ctx)
 	userInfo := r.Context().Value("userInfo").(jwt.MapClaims)
-	message := fmt.Sprintf("hello %s (%s)", userInfo["Username"], userInfo["token"])
-	json.NewEncoder(w).Encode(message)
+	message := fmt.Sprintf("%v", userInfo["token"])
+	return message
+	// json.NewEncoder(w).Encode(message)
 }

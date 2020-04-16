@@ -72,7 +72,7 @@ func GetLogin(w http.ResponseWriter, r *http.Request) {
 				session.Set("userToken", token)
 				response.ErrNumber = 0
 				response.Status = "SUCCESS"
-				response.Message = string([]byte(tokenLogin))
+				response.Message = tokenLogin
 				response.Data = arr_user
 				response.RespTime = Library.TimeStamp()
 			} else {
@@ -125,13 +125,16 @@ func GoLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 func CekUserSession(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	authorizationHeader := r.Header.Get("Authorization")
-
-	Library.MiddlewareJWTAuthorization(w, r, authorizationHeader)
-	// userInfo := r.Context().Value("userInfo").(jwt.MapClaims)
-	// session := Library.CekSession(w, r)
-	// ipAddr := Library.GetIP(r)
-
-	// log.Print(ipAddr)
-	// log.Print(session)
+	if authorizationHeader == "" {
+		json.NewEncoder(w).Encode("Invalid Token")
+	} else {
+		result := Library.CekAuth(w, r, authorizationHeader)
+		if result {
+			json.NewEncoder(w).Encode("Sukses")
+		} else {
+			json.NewEncoder(w).Encode("Token Salah")
+		}
+	}
 }
