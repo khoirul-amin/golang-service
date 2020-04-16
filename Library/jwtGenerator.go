@@ -2,11 +2,9 @@ package Library
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -52,7 +50,8 @@ func JwtAuthUser(w http.ResponseWriter, r *http.Request, username string, token 
 }
 
 func MiddlewareJWTAuthorization(w http.ResponseWriter, r *http.Request, authorizationHeader string) string {
-	tokenString := strings.Replace(authorizationHeader, "Bearer ", "", -1)
+	// tokenString := strings.Replace(authorizationHeader, "Bearer ", "", -1)
+	tokenString := authorizationHeader
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if method, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -64,7 +63,7 @@ func MiddlewareJWTAuthorization(w http.ResponseWriter, r *http.Request, authoriz
 		return JWT_SIGNATURE_KEY, nil
 	})
 	if err != nil {
-		json.NewEncoder(w).Encode("Signing method invalid")
+
 	}
 	claims, ok := token.Claims.(jwt.MapClaims)
 	// log.Print(claims)

@@ -9,7 +9,6 @@ import (
 	"restapi/structs"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/kataras/go-sessions"
 )
 
 func GetLogin(w http.ResponseWriter, r *http.Request) {
@@ -48,7 +47,7 @@ func GetLogin(w http.ResponseWriter, r *http.Request) {
 					log.Print(err)
 				}
 
-				userData, err := db.Query("SELECT id, first_name,last_name,username,token FROM users WHERE id=?",
+				userData, err := db.Query("SELECT id, first_name,last_name,username FROM users WHERE id=?",
 					&cekloginRes.Id,
 				)
 
@@ -56,23 +55,19 @@ func GetLogin(w http.ResponseWriter, r *http.Request) {
 					log.Print(err)
 				}
 
+				tokenLogin := Library.JwtAuthUser(w, r, username, token)
+				users.Token = tokenLogin
+
 				userData.Next()
-				if err := userData.Scan(&users.Id, &users.FirstName, &users.LastName, &users.Username, &users.Token); err != nil {
+				if err := userData.Scan(&users.Id, &users.FirstName, &users.LastName, &users.Username); err != nil {
 					log.Fatal(err.Error())
 				} else {
 					arr_user = append(arr_user, users)
 				}
 
-				tokenLogin := Library.JwtAuthUser(w, r, username, token)
-				session := sessions.Start(w, r)
-
-				session.Set("isLogin", "Login")
-				session.Set("userId", &cekloginRes.Id)
-				session.Set("userName", username)
-				session.Set("userToken", token)
 				response.ErrNumber = 0
 				response.Status = "SUCCESS"
-				response.Message = tokenLogin
+				response.Message = "Login berhasil"
 				response.Data = arr_user
 				response.RespTime = Library.TimeStamp()
 			} else {
@@ -101,40 +96,38 @@ func GetLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func GoLogout(w http.ResponseWriter, r *http.Request) {
-	var response structs.Response
-	ua := r.Header.Get("User-Agent")
-	if ua == "123" {
-		session := sessions.Start(w, r)
-		session.Clear()
-		sessions.Destroy(w, r)
-
-		response.ErrNumber = 0
-		response.Status = "SUCCESS"
-		response.Message = "Logout Success"
-		response.RespTime = Library.TimeStamp()
-		// log.Print("Delete data to database")
+	authorizationHeader := r.Header.Get("Authorization")
+	if authorizationHeader == "" {
+		Library.ErrorResponse(w, "Invalid Token", "Lengkapi data terlebih dahulu", 2)
 	} else {
-		response.ErrNumber = 1
-		response.Status = "ERROR"
-		response.Message = "Header Salah"
-		response.RespTime = Library.TimeStamp()
+		result := Library.CekAuth(w, r, authorizationHeader)
+		tokenUpdate := ""
+		if result {
+			tokenJwt := Library.MiddlewareJWTAuthorization(w, r, authorizationHeader)
+			db := config.Connect()
+			defer db.Close()
+			_, _ = db.Exec("UPDATE users set token = ? where token = ?",
+				tokenUpdate,
+				tokenJwt,
+			)
+			Library.ErrorResponse(w, "Logout", "Logout Berhasil", 0)
+		} else {
+			Library.ErrorResponse(w, "Invalid Token", "Token anda sudah tidak bisa digunakan, silahkan login kembali", 4)
+		}
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
 }
 
 func CekUserSession(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	authorizationHeader := r.Header.Get("Authorization")
 	if authorizationHeader == "" {
-		json.NewEncoder(w).Encode("Invalid Token")
+		Library.ErrorResponse(w, "Invalid Token", "Lengkapi data terlebih dahulu", 2)
 	} else {
 		result := Library.CekAuth(w, r, authorizationHeader)
 		if result {
-			json.NewEncoder(w).Encode("Sukses")
+			Library.ErrorResponse(w, "Ok sukses", "Mantab jiwa babang", 0)
 		} else {
-			json.NewEncoder(w).Encode("Token Salah")
+			Library.ErrorResponse(w, "Invalid Token", "Token anda sudah tidak bisa digunakan, silahkan login kembali", 4)
 		}
 	}
 }

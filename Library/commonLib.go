@@ -3,7 +3,9 @@ package Library
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
 	"net/http"
+	"restapi/structs"
 	"strconv"
 	"time"
 )
@@ -44,4 +46,21 @@ func GetIP(r *http.Request) string {
 		return forwarded
 	}
 	return r.RemoteAddr
+}
+
+func ErrorResponse(w http.ResponseWriter, data string, Message string, ErrNo int) {
+	var response structs.ErrorResponse
+
+	if ErrNo == 0 {
+		response.Status = "SUCCESS"
+	} else {
+		response.Status = "ERROR"
+	}
+	response.ErrNumber = ErrNo
+	response.Data = data
+	response.Message = Message
+	response.RespTime = TimeStamp()
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
