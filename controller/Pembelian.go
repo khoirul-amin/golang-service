@@ -155,3 +155,46 @@ func RiwayatTransaksi(w http.ResponseWriter, r *http.Request) {
 		Library.ErrorResponse(w, "Invalid Header", "Header yang anda masukkan tidak sesuai", 4)
 	}
 }
+
+func RiwayatTransaksiById(w http.ResponseWriter, r *http.Request) {
+	var order structs.Order
+	var arr_order []structs.Order
+	var response structs.ResponseRiwayatOrder
+
+	db := config.Connect()
+	defer db.Close()
+
+	result := Library.CekAuth(w, r)
+	if result {
+		id_transaksi := r.FormValue("id_transaksi")
+		if id_transaksi == "" {
+			Library.ErrorResponse(w, "Incompleted Parameter", "Lengkapi data terlebih dahulu", 2)
+		} else {
+			rows, err := db.Query("Select id,nama_barang,first_name,jumlah,harga,tgl_beli,status from v_pembelian where id = ?",
+				id_transaksi,
+			)
+			for rows.Next() {
+				if err := rows.Scan(&order.Id, &order.NamaBarang, &order.NamaPembeli, &order.JumlahBarang, &order.Harga, &order.TglBeli, &order.Status); err != nil {
+					log.Fatal(err.Error())
+
+				} else {
+					arr_order = append(arr_order, order)
+				}
+			}
+			if err != nil {
+				log.Print(err)
+			}
+
+			response.ErrNumber = 0
+			response.Status = "SUCCESS"
+			response.Message = "Riwayat Transaksi"
+			response.Data = arr_order
+			response.RespTime = Library.TimeStamp()
+			// log.Print(response)
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(response)
+		}
+	} else {
+		Library.ErrorResponse(w, "Invalid Header", "Header yang anda masukkan tidak sesuai", 4)
+	}
+}

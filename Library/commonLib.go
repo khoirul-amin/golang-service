@@ -36,7 +36,7 @@ func Inv(id_barang string, id_user string) string {
 	minute := now.Minute()
 	second := now.Second()
 
-	inv := strconv.Itoa(year) + strconv.Itoa(month) + strconv.Itoa(day) + "/" + strconv.Itoa(hour) + strconv.Itoa(minute) + strconv.Itoa(second) + "/" + id_user + "/" + id_barang
+	inv := strconv.Itoa(year) + strconv.Itoa(month) + strconv.Itoa(day) + "/" + id_user + "/" + id_barang + "/" + strconv.Itoa(hour) + strconv.Itoa(minute) + strconv.Itoa(second)
 
 	return inv
 }
