@@ -5,6 +5,7 @@ type Users struct {
 	FirstName string `form:"firstname" json:"firstname"`
 	LastName  string `form:"lastname" json:"lastname"`
 	Username  string `form:"username" json:"username"`
+	Saldo     int    `form:"saldo" json:"saldo"`
 	Token     string `form:"token" json:"token"`
 }
 
@@ -55,6 +56,32 @@ type ResponseBarang struct {
 	ErrNumber int    `json:"errnumber"`
 	Status    string `json:"status"`
 	Data      []Barang
+	Message   string `json:"message"`
+	RespTime  string `json:"respTime"`
+}
+
+type Order struct {
+	Id           string `from:"id" json:"id"`
+	NamaBarang   string `from:"nama_barang" json:"nama_barang"`
+	NamaPembeli  string `from:"first_name" json:"first_name"`
+	JumlahBarang string `from:"jumlah" json:"jumlah"`
+	Harga        int    `from:"harga" json:"harga"`
+	TglBeli      string `from:"tgl_beli" json:"tgl_beli"`
+	Status       string `from:"status" json:"status"`
+}
+
+type ResponseOrder struct {
+	ErrNumber int    `json:"errnumber"`
+	Status    string `json:"status"`
+	Data      Order
+	Message   string `json:"message"`
+	RespTime  string `json:"respTime"`
+}
+
+type ResponseRiwayatOrder struct {
+	ErrNumber int    `json:"errnumber"`
+	Status    string `json:"status"`
+	Data      []Order
 	Message   string `json:"message"`
 	RespTime  string `json:"respTime"`
 }

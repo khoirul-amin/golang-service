@@ -29,6 +29,10 @@ func main() {
 	router.HandleFunc("/cekproduk", controller.GetProduk).Methods("POST")
 	router.HandleFunc("/getbarang", controller.GetBarangByProduk).Methods("POST")
 
+	//GetOrder
+	router.HandleFunc("/order", controller.GetOrder).Methods("POST")
+	router.HandleFunc("/riwayatorder", controller.RiwayatTransaksi).Methods("POST")
+
 	http.Handle("/", router)
 	fmt.Println("Connected to port 1234")
 	log.Fatal(http.ListenAndServe(":1234", router))

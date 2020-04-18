@@ -33,19 +33,25 @@ func CekSession(w http.ResponseWriter, r *http.Request, tokenJwt string) bool {
 	}
 }
 
-func CekAuth(w http.ResponseWriter, r *http.Request, authorizationHeader string) bool {
+func CekAuth(w http.ResponseWriter, r *http.Request) bool {
+	authorizationHeader := r.Header.Get("Authorization")
 	session, _ := store.Get(r, "UserLogin")
 
 	if len(session.Values) == 0 {
 		return false
 	} else {
-		tokenJwt := MiddlewareJWTAuthorization(w, r, authorizationHeader)
-
-		if tokenJwt != "<nil>" {
-			return CekSession(w, r, tokenJwt)
-		} else {
+		if authorizationHeader == "" {
 			return false
+		} else {
+			tokenJwt := MiddlewareJWTAuthorization(w, r, authorizationHeader)
+
+			if tokenJwt != "<nil>" {
+				return CekSession(w, r, tokenJwt)
+			} else {
+				return false
+			}
 		}
+		// return true
 	}
 }
 

@@ -26,6 +26,21 @@ func TimeStamp() string {
 
 }
 
+func Inv(id_barang string, id_user string) string {
+	var now = time.Now()
+
+	year := now.Year()
+	month := int(now.Month())
+	day := now.Day()
+	hour := now.Hour()
+	minute := now.Minute()
+	second := now.Second()
+
+	inv := strconv.Itoa(year) + strconv.Itoa(month) + strconv.Itoa(day) + "/" + strconv.Itoa(hour) + strconv.Itoa(minute) + strconv.Itoa(second) + "/" + id_user + "/" + id_barang
+
+	return inv
+}
+
 func Hash(data string) string {
 	hash := md5.Sum([]byte(data))
 

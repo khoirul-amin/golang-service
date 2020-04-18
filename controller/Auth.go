@@ -10,7 +10,6 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/sessions"
-	// "github.com/gorilla/sessions"
 )
 
 // var APPLICATION_NAME = "SimpleApp"
@@ -53,7 +52,7 @@ func GetLogin(w http.ResponseWriter, r *http.Request) {
 					log.Print(err)
 				}
 
-				userData, err := db.Query("SELECT id, first_name,last_name,username FROM users WHERE id=?",
+				userData, err := db.Query("SELECT id, first_name,last_name,username,saldo FROM users WHERE id=?",
 					&cekloginRes.Id,
 				)
 
@@ -68,7 +67,7 @@ func GetLogin(w http.ResponseWriter, r *http.Request) {
 				users.Token = tokenLogin
 
 				userData.Next()
-				if err := userData.Scan(&users.Id, &users.FirstName, &users.LastName, &users.Username); err != nil {
+				if err := userData.Scan(&users.Id, &users.FirstName, &users.LastName, &users.Username, &users.Saldo); err != nil {
 					log.Fatal(err.Error())
 				} else {
 					arr_user = append(arr_user, users)
@@ -132,17 +131,12 @@ func GoLogout(w http.ResponseWriter, r *http.Request) {
 
 func CekUserSession(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	authorizationHeader := r.Header.Get("Authorization")
 	Library.CekLocalSession(r)
 
-	if authorizationHeader == "" {
-		Library.ErrorResponse(w, "Invalid Token", "Lengkapi data terlebih dahulu", 2)
+	result := Library.CekAuth(w, r)
+	if result {
+		Library.ErrorResponse(w, "Ok sukses", "Mantab jiwa babang", 0)
 	} else {
-		result := Library.CekAuth(w, r, authorizationHeader)
-		if result {
-			Library.ErrorResponse(w, "Ok sukses", "Mantab jiwa babang", 0)
-		} else {
-			Library.ErrorResponse(w, "Invalid Token", "Token anda sudah tidak bisa digunakan, silahkan login kembali", 4)
-		}
+		Library.ErrorResponse(w, "Invalid Token", "Token anda sudah tidak bisa digunakan, silahkan login kembali", 4)
 	}
 }
