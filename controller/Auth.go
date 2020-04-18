@@ -9,7 +9,13 @@ import (
 	"restapi/structs"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/sessions"
+	// "github.com/gorilla/sessions"
 )
+
+// var APPLICATION_NAME = "SimpleApp"
+
+var store = sessions.NewCookieStore([]byte("SIMPLEAPP"))
 
 func GetLogin(w http.ResponseWriter, r *http.Request) {
 	var users structs.Users
@@ -55,7 +61,10 @@ func GetLogin(w http.ResponseWriter, r *http.Request) {
 					log.Print(err)
 				}
 
-				tokenLogin := Library.JwtAuthUser(w, r, username, token)
+				tokenLogin := Library.JwtAuthUser(w, r, username, token, *&cekloginRes.Id)
+				session, _ := store.Get(r, "UserLogin")
+				session.Values["tokenJWT"] = tokenLogin
+				sessions.Save(r, w)
 				users.Token = tokenLogin
 
 				userData.Next()
@@ -96,30 +105,36 @@ func GetLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func GoLogout(w http.ResponseWriter, r *http.Request) {
-	authorizationHeader := r.Header.Get("Authorization")
-	if authorizationHeader == "" {
-		Library.ErrorResponse(w, "Invalid Token", "Lengkapi data terlebih dahulu", 2)
-	} else {
-		result := Library.CekAuth(w, r, authorizationHeader)
-		tokenUpdate := ""
-		if result {
-			tokenJwt := Library.MiddlewareJWTAuthorization(w, r, authorizationHeader)
-			db := config.Connect()
-			defer db.Close()
-			_, _ = db.Exec("UPDATE users set token = ? where token = ?",
-				tokenUpdate,
-				tokenJwt,
-			)
-			Library.ErrorResponse(w, "Logout", "Logout Berhasil", 0)
-		} else {
-			Library.ErrorResponse(w, "Invalid Token", "Token anda sudah tidak bisa digunakan, silahkan login kembali", 4)
-		}
-	}
+
+	session, _ := store.Get(r, "UserLogin")
+	session.Options.MaxAge = -1
+	sessions.Save(r, w)
+	// authorizationHeader := r.Header.Get("Authorization")
+	// if authorizationHeader == "" {
+	// 	Library.ErrorResponse(w, "Invalid Token", "Lengkapi data terlebih dahulu", 2)
+	// } else {
+	// 	result := Library.CekAuth(w, r, authorizationHeader)
+	// 	tokenUpdate := ""
+	// 	if result {
+	// 		tokenJwt := Library.MiddlewareJWTAuthorization(w, r, authorizationHeader)
+	// 		db := config.Connect()
+	// 		defer db.Close()
+	// 		_, _ = db.Exec("UPDATE users set token = ? where token = ?",
+	// 			tokenUpdate,
+	// 			tokenJwt,
+	// 		)
+	// 		Library.ErrorResponse(w, "Logout", "Logout Berhasil", 0)
+	// 	} else {
+	// 		Library.ErrorResponse(w, "Invalid Token", "Token anda sudah tidak bisa digunakan, silahkan login kembali", 4)
+	// 	}
+	// }
 }
 
 func CekUserSession(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	authorizationHeader := r.Header.Get("Authorization")
+	Library.CekLocalSession(r)
+
 	if authorizationHeader == "" {
 		Library.ErrorResponse(w, "Invalid Token", "Lengkapi data terlebih dahulu", 2)
 	} else {

@@ -1,7 +1,6 @@
 package Library
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -14,6 +13,7 @@ import (
 
 type MyClaims struct {
 	jwt.StandardClaims
+	Id       string `json:"Id"`
 	Username string `json:"Username"`
 	Token    string `json:"token"`
 	// Id    string `json:"id"`
@@ -24,12 +24,13 @@ var LOGIN_EXPIRATION_DURATION = time.Duration(1) * time.Hour
 var JWT_SIGNING_METHOD = jwt.SigningMethodHS256
 var JWT_SIGNATURE_KEY = []byte("the secret of kalimdor")
 
-func JwtAuthUser(w http.ResponseWriter, r *http.Request, username string, token string) string {
+func JwtAuthUser(w http.ResponseWriter, r *http.Request, username string, token string, id string) string {
 	claims := MyClaims{
 		StandardClaims: jwt.StandardClaims{
 			Issuer:    APPLICATION_NAME,
 			ExpiresAt: time.Now().Add(LOGIN_EXPIRATION_DURATION).Unix(),
 		},
+		Id:       id,
 		Username: username,
 		Token:    token,
 	}
@@ -71,9 +72,11 @@ func MiddlewareJWTAuthorization(w http.ResponseWriter, r *http.Request, authoriz
 		// log.Print(w, err.Error(), http.StatusBadRequest)
 		// fmt.Print("")
 	}
-	ctx := context.WithValue(context.Background(), "userInfo", claims)
-	r = r.WithContext(ctx)
-	userInfo := r.Context().Value("userInfo").(jwt.MapClaims)
+	// ctx := context.WithValue(context.Background(), "userInfo", claims)
+	// r = r.WithContext(ctx)
+	// userInfo := r.Context().Value("userInfo").(jwt.MapClaims)
+	userInfo := claims
+	// log.Print(userInfo)
 	message := fmt.Sprintf("%v", userInfo["token"])
 	return message
 	// json.NewEncoder(w).Encode(message)

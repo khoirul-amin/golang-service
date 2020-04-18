@@ -4,7 +4,12 @@ import (
 	"log"
 	"net/http"
 	"restapi/config"
+
+	"github.com/gorilla/sessions"
+	// "github.com/kataras/go-sessions"
 )
+
+var store = sessions.NewCookieStore([]byte("SIMPLEAPP"))
 
 func CekSession(w http.ResponseWriter, r *http.Request, tokenJwt string) bool {
 	// session := sessions.Start(w, r)
@@ -29,11 +34,27 @@ func CekSession(w http.ResponseWriter, r *http.Request, tokenJwt string) bool {
 }
 
 func CekAuth(w http.ResponseWriter, r *http.Request, authorizationHeader string) bool {
-	tokenJwt := MiddlewareJWTAuthorization(w, r, authorizationHeader)
+	session, _ := store.Get(r, "UserLogin")
 
-	if tokenJwt != "<nil>" {
-		return CekSession(w, r, tokenJwt)
-	} else {
+	if len(session.Values) == 0 {
 		return false
+	} else {
+		tokenJwt := MiddlewareJWTAuthorization(w, r, authorizationHeader)
+
+		if tokenJwt != "<nil>" {
+			return CekSession(w, r, tokenJwt)
+		} else {
+			return false
+		}
+	}
+}
+
+func CekLocalSession(r *http.Request) {
+	session, _ := store.Get(r, "UserLogin")
+	if len(session.Values) == 0 {
+		log.Print("Kosong")
+	} else {
+
+		log.Print(session.Values)
 	}
 }
