@@ -53,7 +53,7 @@ func GetOrder(w http.ResponseWriter, r *http.Request) {
 			jml_barang, _ := strconv.Atoi(jumlah_barang)
 			hargaJual := &barang.HargaJual
 			harga := *hargaJual * *&jml_barang
-			status := "Sukses"
+			status := "Waiting"
 			generateId := Library.Inv(id_user, id)
 
 			totalSaldo := user.Saldo - harga
@@ -61,10 +61,10 @@ func GetOrder(w http.ResponseWriter, r *http.Request) {
 				Library.ErrorResponse(w, "Saldo Habis", "Saldo Anda tidak cukup untuk melakukan transaksi", 6)
 			} else {
 				//Update Saldo
-				_, _ = db.Exec("UPDATE users SET saldo = ? WHERE id = ?",
-					totalSaldo,
-					id_user,
-				)
+				// _, _ = db.Exec("UPDATE users SET saldo = ? WHERE id = ?",
+				// 	totalSaldo,
+				// 	id_user,
+				// )
 				//Order Barang
 				_, err := db.Exec("INSERT INTO pembelian (id,barang,pembeli,jumlah,harga,tgl_beli,status) VALUES (?,?,?,?,?,?,?)",
 					generateId,
@@ -100,7 +100,7 @@ func GetOrder(w http.ResponseWriter, r *http.Request) {
 
 				response.ErrNumber = 0
 				response.Status = "SUCCESS"
-				response.Message = "Order Success"
+				response.Message = "Order Sukses, Silahkan melakukan pembayaran maksimal 5 jam dari sekarang"
 				response.Data = arr_order
 				response.RespTime = Library.TimeStamp()
 				// log.Print(response)
@@ -194,6 +194,81 @@ func RiwayatTransaksiById(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(response)
 		}
+	} else {
+		Library.ErrorResponse(w, "Invalid Header", "Header yang anda masukkan tidak sesuai", 4)
+	}
+}
+
+func BayarOrder(w http.ResponseWriter, r *http.Request) {
+	var order structs.Order
+	var user structs.Users
+	var arr_order []structs.Order
+	var response structs.ResponseRiwayatOrder
+
+	db := config.Connect()
+	defer db.Close()
+
+	result := Library.CekAuth(w, r)
+	if result {
+		id_transaksi := r.FormValue("id_transaksi")
+		id_user := r.FormValue("id_user")
+
+		if id_transaksi == "" && id_user == "" {
+			Library.ErrorResponse(w, "Incompleted Parameter", "Lengkapi data terlebih dahulu", 2)
+		} else {
+
+			rows, err := db.Query("Select id,nama_barang,first_name,jumlah,harga,tgl_beli,status from v_pembelian where id = ?",
+				id_transaksi,
+			)
+			for rows.Next() {
+				if err := rows.Scan(&order.Id, &order.NamaBarang, &order.NamaPembeli, &order.JumlahBarang, &order.Harga, &order.TglBeli, &order.Status); err != nil {
+					log.Fatal(err.Error())
+				}
+			}
+			if err != nil {
+				log.Print(err)
+			}
+
+			if order.Status == "Gagal" {
+				Library.ErrorResponse(w, "Pembayaran Gagal", "Transaksi anda sudah di gagalkan sistem karena pembayaran melebihi batas waktu", 8)
+			} else if order.Status == "Sukses" {
+				Library.ErrorResponse(w, "Pembayaran Gagal", "Transaksi anda sudah sukses", 8)
+			} else {
+				order.Status = "Sukses"
+				arr_order = append(arr_order, order)
+				//Select Users
+				rows, _ = db.Query("Select id,first_name,saldo from users where id = ?",
+					id_user,
+				)
+
+				for rows.Next() {
+					rows.Scan(&user.Id, &user.FirstName, &user.Saldo)
+				}
+
+				// Update Saldo
+				totalSaldo := user.Saldo - order.Harga
+				_, _ = db.Exec("UPDATE users SET saldo = ? WHERE id = ?",
+					totalSaldo,
+					id_user,
+				)
+				status := "Sukses"
+				// Update tabel pembayaran
+				_, _ = db.Exec("update pembelian set harga = ?, status = ? where id = ?",
+					order.Harga,
+					status,
+					id_transaksi,
+				)
+				response.ErrNumber = 0
+				response.Status = "SUCCESS"
+				response.Message = "Pembayaran Sukses, Barang anda akan segera dikirim"
+				response.Data = arr_order
+				response.RespTime = Library.TimeStamp()
+				// log.Print(response)
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(response)
+			}
+		}
+
 	} else {
 		Library.ErrorResponse(w, "Invalid Header", "Header yang anda masukkan tidak sesuai", 4)
 	}

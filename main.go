@@ -32,6 +32,7 @@ func main() {
 	//GetOrder
 	router.HandleFunc("/order", controller.GetOrder).Methods("POST")
 	router.HandleFunc("/riwayatorder", controller.RiwayatTransaksi).Methods("POST")
+	router.HandleFunc("/bayarorder", controller.BayarOrder).Methods("POST")
 	router.HandleFunc("/riwayatorderid", controller.RiwayatTransaksiById).Methods("POST")
 
 	http.Handle("/", router)
