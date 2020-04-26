@@ -8,8 +8,6 @@ import (
 	"restapi/config"
 	"restapi/structs"
 	"strconv"
-
-	_ "github.com/go-sql-driver/mysql"
 )
 
 func GetOrder(w http.ResponseWriter, r *http.Request) {

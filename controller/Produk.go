@@ -8,7 +8,6 @@ import (
 	"restapi/config"
 	"restapi/structs"
 
-	_ "github.com/go-sql-driver/mysql"
 )
 
 func GetProduk(w http.ResponseWriter, r *http.Request) {

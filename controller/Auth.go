@@ -8,7 +8,6 @@ import (
 	"restapi/config"
 	"restapi/structs"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/sessions"
 )
 
@@ -31,19 +30,18 @@ func GetLogin(w http.ResponseWriter, r *http.Request) {
 		if username != "" && r.FormValue("password") != "" {
 			password := Library.Hash(r.FormValue("password"))
 
-			cekUser, err := db.Query("SELECT id FROM users WHERE username = ? AND password = ?",
+			cekUser, err := db.Query(`SELECT id FROM users WHERE username = $1 AND password = $2`,
 				username, password,
 			)
 			if err != nil {
 				log.Print(err)
 			}
-
 			if cekUser.Next() {
 				cekUser.Scan(&cekloginRes.Id)
 
 				token := Library.HashToken(password)
 				updated_at := Library.TimeStamp()
-				_, err = db.Exec("UPDATE users SET token = ?, updated_at = ? WHERE id = ?",
+				_, err = db.Exec(`UPDATE users SET token = $1, updated_at = $2 WHERE id = $3`,
 					token,
 					updated_at,
 					&cekloginRes.Id,
@@ -52,7 +50,7 @@ func GetLogin(w http.ResponseWriter, r *http.Request) {
 					log.Print(err)
 				}
 
-				userData, err := db.Query("SELECT id, first_name,last_name,username,saldo FROM users WHERE id=?",
+				userData, err := db.Query(`SELECT id, first_name,last_name,username,saldo FROM users WHERE id=$1`,
 					&cekloginRes.Id,
 				)
 

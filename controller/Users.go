@@ -7,13 +7,11 @@ import (
 	"restapi/Library"
 	"restapi/config"
 	"restapi/structs"
-
-	_ "github.com/go-sql-driver/mysql"
 )
 
 func ReturnAllUsers(w http.ResponseWriter, r *http.Request) {
 	var users structs.Users
-	var arr_user []structs.Users
+	var arrUser []structs.Users
 	var response structs.Response
 	// var errorresponse structs.ResponseError
 
@@ -32,14 +30,14 @@ func ReturnAllUsers(w http.ResponseWriter, r *http.Request) {
 				log.Fatal(err.Error())
 
 			} else {
-				arr_user = append(arr_user, users)
+				arrUser = append(arrUser, users)
 			}
 		}
 
 		response.ErrNumber = 0
 		response.Status = "SUCCESS"
 		response.Message = "Daftar User"
-		response.Data = arr_user
+		response.Data = arrUser
 		response.RespTime = Library.TimeStamp()
 	} else {
 		response.ErrNumber = 1
